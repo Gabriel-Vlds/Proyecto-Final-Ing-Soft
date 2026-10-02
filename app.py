@@ -1,5 +1,3 @@
-import os
-
 from flask import Flask, request, jsonify
 from flask_jwt_extended import (
     JWTManager,
@@ -15,16 +13,11 @@ from database import get_db, init_db
 
 app = Flask(__name__)
 
-app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
+app.config["JWT_SECRET_KEY"] = "clave-secreta-proyecto-donaciones"
 
 jwt = JWTManager(app)
 
-
-@app.before_request
-def inicializar_base_de_datos():
-    if not app.extensions.get("database_initialized"):
-        init_db()
-        app.extensions["database_initialized"] = True
+init_db()
 
 
 @app.route("/")
@@ -114,6 +107,10 @@ def login():
         "token": token,
         "rol": usuario["rol"]
     }), 200
+
+def verificar_admin():
+    claims = get_jwt()
+    return claims.get("rol") == "administrador"
 
 @app.route("/perfil", methods=["GET"])
 @jwt_required()
@@ -228,4 +225,4 @@ def mis_donaciones():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
